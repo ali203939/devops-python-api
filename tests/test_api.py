@@ -13,6 +13,7 @@ def clear_tasks() -> None:
     tasks.clear()
 
 
+
 def test_health_returns_version() -> None:
     response = client.get("/health")
 
