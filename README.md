@@ -9,7 +9,7 @@ Repositório didático para apresentar, em uma única aplicação, três ideias 
 O projeto utiliza FastAPI, pytest, Ruff, GitHub Actions e Docker. Os dados ficam em memória para manter a atenção da aula no fluxo DevOps, sem introduzir banco de dados.
 
 ## O que os estudantes devem observar
-
+ 
 - O código funciona localmente e no runner do GitHub.
 - A mesma suíte de testes é executada pelo desenvolvedor e pelo pipeline.
 - O Dockerfile descreve o ambiente necessário para executar a API.
