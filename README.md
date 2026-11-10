@@ -15,7 +15,7 @@ O projeto utiliza FastAPI, pytest, Ruff, GitHub Actions e Docker. Os dados ficam
 - O Dockerfile descreve o ambiente necessário para executar a API.
 - O pipeline só testa o container depois que qualidade e testes foram aprovados.
 - Logs, cobertura e relatórios funcionam como evidências, não apenas como mensagens coloridas.
-
+ 
 ## Estrutura do repositório
 
 ```text
