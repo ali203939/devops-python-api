@@ -55,7 +55,7 @@ jobs:
           name: relatorios-de-teste
           path: |
             coverage.xml
-            reports/junit.xml
+            reports/
           if-no-files-found: error
           retention-days: 7
 
