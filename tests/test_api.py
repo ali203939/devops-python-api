@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app, tasks
+
 # teste
 client = TestClient(app)
 
@@ -11,7 +12,6 @@ def clear_tasks() -> None:
     """Isola os testes, limpando o armazenamento em memória."""
 
     tasks.clear()
-
 
 
 def test_health_returns_version() -> None:
