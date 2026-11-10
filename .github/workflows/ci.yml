@@ -62,13 +62,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: relatorios-de-teste
-<<<<<<< HEAD
-          path: |
-            coverage.xml
-            reports/junit.xml
-=======
           path: artifacts/
->>>>>>> 701b54d (Fix CI lint and artifact upload)
           if-no-files-found: error
           retention-days: 7
 
