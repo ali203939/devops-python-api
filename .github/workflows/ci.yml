@@ -2,9 +2,9 @@ name: CI Python
 
 on:
   push:
-    branches: [main]
+    branches: ["**"]
   pull_request:
-    branches: [main]
+    branches: ["**"]
   workflow_dispatch:
 
 permissions:
@@ -21,10 +21,10 @@ jobs:
 
     steps:
       - name: Obter o código
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Preparar o Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version-file: .python-version
           cache: pip
@@ -42,20 +42,27 @@ jobs:
       - name: Executar testes e cobertura
         run: |
           mkdir -p reports
+          mkdir -p artifacts
           pytest \
             --cov=app \
             --cov-report=term-missing \
             --cov-report=xml:coverage.xml \
             --junitxml=reports/junit.xml
 
+          if [ -f coverage.xml ]; then
+            cp coverage.xml artifacts/coverage.xml
+          fi
+
+          if [ -f reports/junit.xml ]; then
+            cp reports/junit.xml artifacts/junit.xml
+          fi
+
       - name: Guardar relatórios da execução
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: relatorios-de-teste
-          path: |
-            coverage.xml
-            reports/
+          path: artifacts/
           if-no-files-found: error
           retention-days: 7
 
@@ -66,7 +73,7 @@ jobs:
 
     steps:
       - name: Obter o código
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Construir a imagem
         run: docker build --tag devops-python-api:${{ github.sha }} .
