@@ -1,5 +1,6 @@
-import pytest
 from fastapi.testclient import TestClient
+import pytest
+
 from app.main import app, tasks
 
 client = TestClient(app)
@@ -8,9 +9,7 @@ client = TestClient(app)
 @pytest.fixture(autouse=True)
 def clear_tasks() -> None:
     """Isola os testes, limpando o armazenamento em memória."""
-
     tasks.clear()
-
 
 
 def test_health_returns_version() -> None:
