@@ -36,7 +36,7 @@ def root() -> dict[str, str]:
 def health() -> dict[str, str]:
     """Endpoint usado por pessoas, containers e pipelines para verificar a API."""
 
-    return {"status": "healthy", "version": app.version}
+    return {"status": "deployed", "version": app.version}
 
 
 @app.get("/tasks", response_model=list[Task])

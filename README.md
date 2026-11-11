@@ -1,45 +1,66 @@
 # API Python para demonstrar DevOps
 
-Repositório didático para apresentar, em uma única aplicação, três ideias que se conectam:
+Esta aplicação é uma API REST em Python, construída com FastAPI, para demonstrar práticas de integração contínua, entrega contínua e deploy em container em ambientes Linux na nuvem. O objetivo principal é mostrar, de forma didática, como código, testes, qualidade, imagens Docker e implantação em EC2 podem funcionar em um fluxo real de desenvolvimento e operação.
 
-1. uma API HTTP escrita em Python;
-2. integração contínua com GitHub Actions;
-3. execução reproduzível com Docker.
+O projeto mantém os dados em memória para priorizar o aprendizado do pipeline e da automação, sem introduzir dependências extras de banco de dados.
 
-O projeto utiliza FastAPI, pytest, Ruff, GitHub Actions e Docker. Os dados ficam em memória para manter a atenção da aula no fluxo DevOps, sem introduzir banco de dados.
+## Descrição da aplicação e objetivo
 
-## O que os estudantes devem observar
-  
-- O código funciona localmente e no runner do GitHub.
-- A mesma suíte de testes é executada pelo desenvolvedor e pelo pipeline.
-- O Dockerfile descreve o ambiente necessário para executar a API.
-- O pipeline só testa o container depois que qualidade e testes foram aprovados.
-- Logs, cobertura e relatórios funcionam como evidências, não apenas como mensagens coloridas.
- 
+A API expõe endpoints para gerenciar tarefas e verificar o estado geral do serviço. Em termos práticos, ela simula um cenário comum de software em produção:
+
+- desenvolvimento local;
+- validação automatizada em CI;
+- construção de imagem Docker;
+- publicação da imagem em um registry;
+- deploy em uma instância EC2;
+- verificação via endpoint de saúde.
+
+A aplicação é um laboratório para demonstrar como a mesma mudança de código passa por validação automatizada antes de ser implantada.
+
+## Tecnologias utilizadas
+
+- Python 3.13
+- FastAPI
+- Pydantic
+- Uvicorn
+- Pytest
+- Ruff
+- Docker
+- Docker Compose
+- GitHub Actions
+- Amazon ECR
+- Amazon EC2
+- AWS CLI
+
 ## Estrutura do repositório
 
 ```text
 .
-├── .github/workflows/ci.yml   # pipeline de integração contínua
+├── .github/workflows/
+│   ├── ci.yml            # pipeline de integração contínua
+│   └── deploy.yml        # pipeline de entrega contínua
 ├── app/
 │   ├── __init__.py
-│   └── main.py                # API FastAPI
+│   └── main.py           # API FastAPI
 ├── docs/
 │   ├── API.md
 │   ├── DOCKER.md
 │   ├── GITHUB-ACTIONS.md
 │   └── ROTEIRO-AULA.md
-├── tests/test_api.py          # testes automatizados
+├── tests/
+│   └── test_api.py       # testes automatizados
 ├── .dockerignore
 ├── .python-version
 ├── compose.yaml
 ├── Dockerfile
-├── pyproject.toml             # configuração de pytest, cobertura e Ruff
-├── requirements.txt           # dependências de execução
-└── requirements-dev.txt       # dependências de desenvolvimento e CI
+├── pyproject.toml        # configuração de pytest, cobertura e Ruff
+├── requirements.txt       # dependências de execução
+├── requirements-dev.txt   # dependências de desenvolvimento e CI
+├── .gitignore
+└── README.md
 ```
 
-## 1. Executar localmente
+## Instruções para execução local
 
 Pré-requisitos: Git e Python 3.13.
 
@@ -67,7 +88,7 @@ Acesse:
 - documentação Swagger: <http://localhost:8000/docs>
 - verificação de saúde: <http://localhost:8000/health>
 
-## 2. Experimentar a API
+### Exemplos de uso
 
 ```bash
 curl http://localhost:8000/health
@@ -81,7 +102,7 @@ curl http://localhost:8000/tasks
 curl -X PATCH http://localhost:8000/tasks/1/done
 ```
 
-Endpoints:
+Endpoints principais:
 
 | Método | Caminho | Objetivo | Resposta esperada |
 |---|---|---|---|
@@ -91,56 +112,21 @@ Endpoints:
 | POST | `/tasks` | Criar uma tarefa | `201` |
 | PATCH | `/tasks/{id}/done` | Concluir uma tarefa | `200` ou `404` |
 
-Veja a explicação do código em [docs/API.md](docs/API.md).
+## Procedimento de construção e execução da imagem Docker
 
-## 3. Executar as verificações locais
-
-```bash
-ruff check .
-ruff format --check .
-pytest --cov=app --cov-report=term-missing
-```
-
-Esses comandos são deliberadamente iguais aos usados no GitHub Actions. Se uma verificação falhar localmente, ela também deverá falhar no pipeline.
-
-Para aplicar a formatação automaticamente:
-
-```bash
-ruff format .
-```
-
-## 4. Publicar no GitHub e acionar a CI
-
-O diretório já é inicializado como repositório Git local. Crie um repositório vazio no GitHub e execute:
-
-```bash
-git remote add origin https://github.com/SEU-USUARIO/devops-python-api.git
-git push -u origin main
-```
-
-O arquivo `.github/workflows/ci.yml` dispara o pipeline em três situações:
-
-- `push` na branch `main`;
-- `pull_request` destinado à `main`;
-- execução manual pela aba **Actions**.
-
-Na aba **Actions**, abra a execução e faça a leitura nesta ordem:
-
-1. workflow;
-2. job;
-3. primeiro step que falhou;
-4. comando e mensagem que explicam a falha.
-
-A explicação detalhada do YAML está em [docs/GITHUB-ACTIONS.md](docs/GITHUB-ACTIONS.md).
-
-## 5. Executar com Docker
+### Construir a imagem
 
 ```bash
 docker build -t devops-python-api:v1 .
+```
+
+### Executar a imagem localmente
+
+```bash
 docker run --rm -p 8000:8000 --name devops-python-api devops-python-api:v1
 ```
 
-Em outro terminal:
+### Verificar a API no container
 
 ```bash
 curl http://localhost:8000/health
@@ -148,14 +134,174 @@ docker ps
 docker logs devops-python-api
 ```
 
-Com Docker Compose:
+### Com Docker Compose
 
 ```bash
 docker compose up --build
 docker compose down
 ```
 
-Veja a leitura detalhada do Dockerfile em [docs/DOCKER.md](docs/DOCKER.md).
+O Dockerfile define o ambiente de execução da aplicação e expõe a porta 8000 para acesso externo ao serviço.
+
+## Pipeline de integração contínua
+
+O workflow de CI está em [.github/workflows/ci.yml](.github/workflows/ci.yml). Ele é acionado em:
+
+- push para qualquer branch;
+- pull request;
+- execução manual via `workflow_dispatch`.
+
+A pipeline realiza os seguintes passos:
+
+1. checkout do código;
+2. configuração do Python;
+3. instalação das dependências de desenvolvimento;
+4. análise estática com Ruff;
+5. verificação de formatação com Ruff;
+6. execução de testes com Pytest;
+7. geração de relatórios de cobertura e JUnit;
+8. upload de artefatos como evidência;
+9. build da imagem Docker e smoke test do container.
+
+A etapa de smoke test garante que a aplicação esteja respondendo em `/health` antes de considerar o build como válido.
+
+### Verificação local equivalente à CI
+
+```bash
+ruff check .
+ruff format --check .
+pytest --cov=app --cov-report=term-missing
+```
+
+Se essas etapas falharem localmente, elas também falham no GitHub Actions, mantendo a mesma regra em todas as etapas do desenvolvimento.
+
+## Pipeline de entrega contínua
+
+O workflow de CD está em [.github/workflows/deploy.yml](.github/workflows/deploy.yml). Ele é acionado em:
+
+- push na branch `main`;
+- execução manual via `workflow_dispatch`.
+
+O fluxo de deploy realiza os seguintes passos:
+
+1. autenticação no GitHub com o código do repositório;
+2. configuração das credenciais AWS;
+3. login no Amazon ECR;
+4. build da imagem Docker;
+5. push da imagem para o repositório ECR;
+6. conexão SSH com a EC2;
+7. autenticação no ECR pela instância;
+8. pull da imagem mais recente;
+9. remoção do container anterior;
+10. execução do novo container em background na porta 8000.
+
+Essa sequência garante que a atualização do código possa ser entregue sem intervenção manual direta no host da instância.
+
+## Arquitetura de implantação envolvendo GitHub, ECR e EC2
+
+O fluxo de implantação do projeto segue a seguinte arquitetura:
+
+```text
+GitHub Repository
+      │
+      ├─ push / pull request
+      │
+      ▼
+GitHub Actions
+      │
+      ├─ CI: qualidade + testes + build + smoke test
+      │
+      └─ CD: build da imagem + push para ECR + deploy via SSH na EC2
+                        │
+                        ▼
+                     Amazon ECR
+                        │
+                        ▼
+                 EC2 instance
+                        │
+                        ▼
+                 Docker container
+                        │
+                        ▼
+                   52.5.179.245:8000
+```
+
+Em outras palavras:
+
+- o código é versionado no GitHub;
+- o GitHub Actions executa a validação; 
+- a imagem Docker é publicada no Amazon ECR;
+- a EC2 recebe a imagem e sobe o container na porta 8000.
+
+## URL ou endereço de acesso à API publicada
+
+O endereço de acesso da API depende do ambiente provisionado na EC2. Em geral, a URL pública será da forma:
+
+```text
+http://52.5.179.245:8000
+```
+
+Também é possível verificar o endpoint de saúde diretamente:
+
+```bash
+curl 52.5.179.245:8000/health
+```
+
+## Evidências da execução das pipelines
+
+As evidências podem ser consultadas na aba **Actions** do GitHub:
+
+- logs da execução do workflow;
+- status do job CI;
+- artefatos gerados pelo pytest e pela cobertura;
+- logs do build e do smoke test do container;
+- logs da execução do deploy na EC2.
+
+Os artefatos normalmente incluem:
+
+- `coverage.xml`;
+- `junit.xml`;
+- logs do container;
+- relatórios da execução da pipeline.
+
+Esses arquivos servem como evidência documental da validação e da entrega da aplicação.
+
+## Instruções para verificar a versão implantada
+
+Para confirmar a versão em execução na EC2, execute:
+
+```bash
+curl http://52.5.179.245:8000/health
+```
+
+A resposta esperada inclui a versão da aplicação, por exemplo:
+
+```json
+{"status": "healthy", "version": "1.0.0"}
+```
+
+Também é possível verificar diretamente a imagem implantada em execução no host:
+
+```bash
+docker ps
+docker logs devops-python-api
+```
+
+Se a versão do endpoint for alterada pela pipeline de deploy, a resposta em `/health` passa a refletir o novo valor implantado, permitindo confirmar que a entrega contínua realmente atingiu o ambiente de produção.
+
+## Executar verificações locais
+
+```bash
+ruff check .
+ruff format --check .
+pytest --cov=app --cov-report=term-missing
+```
+
+Para aplicar a formatação automaticamente:
+
+```bash
+ruff format .
+```
 
 ## Falhas intencionais para demonstrar
 
